@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 
@@ -35,8 +36,24 @@ func main() {
 	}
 	glfwRenderer.SetWindowTitle(gb.GetGameTitle())
 
+	// Pause
+	glfwRenderer.OnPause = func() {
+		fmt.Println("SEND PAUSE SIGNAL")
+		gb.Pause()
+	}
+	// Stop
+	glfwRenderer.OnStop = func() {
+		fmt.Println("SEND STOP SIGNAL")
+		gb.Stop()
+	}
+	// Start
+	glfwRenderer.OnStart = func() {
+		fmt.Println("SEND START SIGNAL")
+		gb.Start()
+	}
+
 	// Run GameBoy emulation
-	go gb.Run()
+	gb.Start()
 	// Run Gameboy OpenAL Audio Player
 	// go audioPlayer.Play()
 

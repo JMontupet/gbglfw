@@ -14,10 +14,10 @@ type GlfwIO struct {
 	coreio.InputsManager
 
 	mDraw *sync.Mutex
-	cDraw *sync.Cond
 
 	frameBuffer *coreio.FrameBuffer
 	colors      *coreio.FrameColors
+	dirtyScreen bool
 
 	window  *glfw.Window
 	texture uint32
@@ -32,6 +32,10 @@ type GlfwIO struct {
 
 	projection        mgl32.Mat4
 	projectionUniform int32
+
+	OnPause func()
+	OnStop  func()
+	OnStart func()
 }
 
 func (io *GlfwIO) SwapFrameBuffer(
@@ -43,7 +47,7 @@ func (io *GlfwIO) SwapFrameBuffer(
 	io.frameBuffer = frameBuffer
 	oldColors := io.colors
 	io.colors = colors
-	io.cDraw.Broadcast()
+	io.dirtyScreen = true
 	io.mDraw.Unlock()
 	return oldBuff, oldColors
 }
@@ -72,7 +76,6 @@ func NewGlfwIO() *GlfwIO {
 	io.windowTitle = "-"
 
 	io.mDraw = new(sync.Mutex)
-	io.cDraw = sync.NewCond(io.mDraw)
 
 	return io
 }

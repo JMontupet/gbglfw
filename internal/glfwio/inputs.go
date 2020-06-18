@@ -46,7 +46,21 @@ func (io *GlfwIO) listenInputs() {
 				currentKeys &= ^coreio.GBKeySELECT
 			case glfw.KeyP:
 				currentKeys &= ^coreio.GBKeySTART
+			// Pause / Start / Stop
+			case glfw.KeyPause:
+				if io.OnPause != nil {
+					io.OnPause()
+				}
+			case glfw.KeyEnd:
+				if io.OnStop != nil {
+					io.OnStop()
+				}
+			case glfw.KeyHome:
+				if io.OnStart != nil {
+					io.OnStart()
+				}
 			}
+
 		}
 		if old != currentKeys {
 			io.inputQueue <- currentKeys

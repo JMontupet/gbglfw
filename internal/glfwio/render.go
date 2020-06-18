@@ -40,7 +40,7 @@ func (io *GlfwIO) Render() {
 		log.Fatalln("failed to initialize glow :", err)
 	}
 	// Disable VSYNC
-	glfw.SwapInterval(0)
+	// glfw.SwapInterval(0)
 
 	lastTime := glfw.GetTime()
 	currentTime := lastTime
@@ -56,9 +56,6 @@ func (io *GlfwIO) Render() {
 	gl.ActiveTexture(gl.TEXTURE1)
 
 	for !io.window.ShouldClose() {
-		io.mDraw.Lock()
-		io.cDraw.Wait()
-
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		currentTime := glfw.GetTime()
 		delta = currentTime - lastTime
@@ -72,32 +69,39 @@ func (io *GlfwIO) Render() {
 		}
 
 		gl.BindTexture(gl.TEXTURE_2D, io.texture)
-		// C'est ici que tout ce passe !!!
-		gl.TexSubImage2D(
-			gl.TEXTURE_2D,
-			0,
-			0,
-			0,
-			screenWidth,
-			screenHeight,
-			gl.RED,
-			gl.UNSIGNED_BYTE,
-			atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&io.frameBuffer))),
-		)
-		gl.BindTexture(gl.TEXTURE_1D, io.palette)
-		gl.TexSubImage1D(
-			gl.TEXTURE_1D,
-			0,
-			0,
-			64,
-			gl.RGB,
-			gl.UNSIGNED_BYTE,
-			atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&io.colors))),
-		)
+
+		io.mDraw.Lock()
+		if io.dirtyScreen {
+
+			// C'est ici que tout ce passe !!!
+			gl.TexSubImage2D(
+				gl.TEXTURE_2D,
+				0,
+				0,
+				0,
+				screenWidth,
+				screenHeight,
+				gl.RED,
+				gl.UNSIGNED_BYTE,
+				atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&io.frameBuffer))),
+			)
+			gl.BindTexture(gl.TEXTURE_1D, io.palette)
+			gl.TexSubImage1D(
+				gl.TEXTURE_1D,
+				0,
+				0,
+				64,
+				gl.RGB,
+				gl.UNSIGNED_BYTE,
+				atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&io.colors))),
+			)
+
+			io.dirtyScreen = false
+		}
+		io.mDraw.Unlock()
+
 		gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 		io.window.SwapBuffers()
-
-		io.mDraw.Unlock()
 
 		glfw.PollEvents()
 	}
