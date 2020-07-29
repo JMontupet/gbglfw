@@ -3,7 +3,7 @@ package glfwio
 import (
 	"log"
 
-	"github.com/go-gl/gl/all-core/gl"
+	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -12,6 +12,12 @@ func (io *GlfwIO) initGlow() {
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
+	version := gl.GoStr(gl.GetString(gl.VERSION))
+	shaderVersion := gl.GoStr(gl.GetString(gl.SHADING_LANGUAGE_VERSION))
+	renderer := gl.GoStr(gl.GetString(gl.RENDERER))
+	log.Println("OpenGL version  :", version)
+	log.Println("GLSL   version  :", shaderVersion)
+	log.Println("OpenGL renderer :", renderer)
 
 	// Configure the vertex and fragment shaders
 	program, err := newGLProgram(vertexShader, fragmentShaderNearest)
@@ -29,7 +35,6 @@ func (io *GlfwIO) initGlow() {
 	// Prepare texture locations
 	textureUniform := gl.GetUniformLocation(program, gl.Str("tex\x00"))
 	gl.Uniform1i(textureUniform, 0)
-	gl.BindFragDataLocation(program, 0, gl.Str("outputColor\x00"))
 
 	// Load the texture
 	io.texture, err = newGLTexture()

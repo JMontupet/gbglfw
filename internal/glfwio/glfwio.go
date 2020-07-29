@@ -3,9 +3,8 @@ package glfwio
 import (
 	"sync"
 
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
-
-	"github.com/go-gl/glfw/v3.2/glfw"
 	"github.com/jmontupet/gbcore/pkg/coreio"
 )
 
