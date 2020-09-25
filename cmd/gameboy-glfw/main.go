@@ -6,15 +6,17 @@ import (
 	"io/ioutil"
 	"log"
 
+	"net/http"
+	_ "net/http/pprof"
+
 	"github.com/jmontupet/gbcore/pkg/emulator"
 	"github.com/jmontupet/gbgl/internal/glfwio"
-	// _ "net/http/pprof"
 )
 
 func main() {
-	// go func() {
-	// 	log.Println(http.ListenAndServe("localhost:6060", nil))
-	// }()
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	// Parse command options
 	flag.Parse()

@@ -2,6 +2,8 @@ package glfwio
 
 import (
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
@@ -16,7 +18,7 @@ type GlfwIO struct {
 
 	frameBuffer *coreio.FrameBuffer
 	colors      *coreio.FrameColors
-	dirtyScreen bool
+	dirtyScreen int32
 
 	window  *glfw.Window
 	texture uint32
@@ -35,6 +37,10 @@ type GlfwIO struct {
 	OnPause func()
 	OnStop  func()
 	OnStart func()
+
+	lastTimeEmu float64
+	nbFramesEmu int64
+	fpsEmu      float64
 }
 
 func (io *GlfwIO) SwapFrameBuffer(
@@ -46,8 +52,18 @@ func (io *GlfwIO) SwapFrameBuffer(
 	io.frameBuffer = frameBuffer
 	oldColors := io.colors
 	io.colors = colors
-	io.dirtyScreen = true
+
+	currentTime := float64(time.Now().UnixNano())
+	delta := (currentTime - io.lastTimeEmu) / float64(time.Second)
+	io.nbFramesEmu++
+	if delta >= 1.0 {
+		io.fpsEmu = float64(io.nbFramesEmu) / delta
+		io.nbFramesEmu = 0
+		io.lastTimeEmu = currentTime
+	}
 	io.mDraw.Unlock()
+	atomic.StoreInt32(&io.dirtyScreen, 1)
+
 	return oldBuff, oldColors
 }
 func (io *GlfwIO) CurrentInput() coreio.KeyInputState {
